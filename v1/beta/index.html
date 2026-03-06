@@ -321,16 +321,6 @@
             setCookie('weatherLastRefresh', Date.now().toString(), 2);
         }
 
-        // 检查是否需要刷新天气数据（2 小时）
-        function shouldRefreshWeather() {
-            const lastRefresh = getCookie('weatherLastRefresh');
-            if (!lastRefresh) return true;
-            
-            const now = Date.now();
-            const twoHours = 2 * 60 * 60 * 1000;
-            return now - parseInt(lastRefresh) > twoHours;
-        }
-
         function formatDate(timestamp) {
             const date = new Date(timestamp);
             const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -441,15 +431,9 @@
                 appState.currentLocation = JSON.parse(savedLocation);
                 elements.locationName.textContent = appState.currentLocation.name;
                 
-                // 检查是否需要刷新天气数据
-                if (shouldRefreshWeather()) {
-                    elements.loading.classList.remove('hidden');
-                    await fetchWeatherData(appState.currentLocation.query);
-                } else {
-                    elements.loading.classList.add('hidden');
-                    // 使用缓存的数据更新 UI
-                    console.log('使用缓存的天气数据');
-                }
+                // 每次刷新都重新获取天气数据
+                elements.loading.classList.remove('hidden');
+                await fetchWeatherData(appState.currentLocation.query);
             } else {
                 requestLocation();
             }
@@ -911,12 +895,6 @@
             setInterval(setBackgroundByTime, 60000);
 
             // 每 5 分钟检查一次是否需要刷新天气数据
-            setInterval(() => {
-                if (appState.currentLocation && shouldRefreshWeather()) {
-                    console.log('定时刷新天气数据');
-                    fetchWeatherData(appState.currentLocation.query);
-                }
-            }, 5 * 60 * 1000);
 
             document.addEventListener('click', (e) => {
                 if (!elements.locationBtn.contains(e.target)) {
